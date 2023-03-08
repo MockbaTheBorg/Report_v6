@@ -8,19 +8,22 @@ if(version_compare(PHP_VERSION, '8.1.0') < 0) {
 }
 
 // Check for required extensions
-$extensions = ['curl', 'json', 'openssl', 'runkit7', 'sqlite3', 'yaml'];
+$error = false;
+$extensions = ['json', 'sqlite3', 'yaml'];
 foreach($extensions as $extension) {
     if(!extension_loaded($extension)) {
         print('ERROR: PHP extension ' . $extension . ' is required.' . NL);
-        exit(1);
+        $error = true;
     }
+}
+if($error) {
+    exit(1);
 }
 
 // Check for (and create if necessary) required folders
 $error = false;
 $folders = [
     'html_files,0',
-    'html_files/charts,0',
     'html_files/css,0',
     'html_files/images,0',
     'include,0', 
@@ -39,9 +42,6 @@ foreach($folders as $folder) {
             $error = true;
         }
     }
-}
-if(!file_exists('html_files/charts')) {
-    print('       Use tools/create_charts.php to create the charts folder.' . NL);
 }
 if($error) {
     exit(1);

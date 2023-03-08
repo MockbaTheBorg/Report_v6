@@ -6,7 +6,7 @@ function timeDiff($time1, $time2) {
     }
     $diff = abs($time1 - $time2);
     if ($diff < 1) {
-        return "less than 1 second";
+        return "less than a second";
     }
     $time = '';
     $time_parts = [

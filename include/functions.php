@@ -4,7 +4,7 @@
 
 if($globals->debug)
 	print('Loading functions.' . NL);
-$functions = scandir(__DIR__.'/library');
+$functions = scandir($globals->cwd.'/include/library');
 foreach($functions as $function) {
 	if($function=='.' or $function=='..')
 		continue;
@@ -12,7 +12,7 @@ foreach($functions as $function) {
 		continue;
 	if($globals->debug)
 		print('   '.$function.NL);
-	require_once __DIR__.'/library/'.$function;
+	require_once $globals->cwd.'/include/library/'.$function;
 };
 if($globals->debug)
 	print('All functions loaded.' . NL);

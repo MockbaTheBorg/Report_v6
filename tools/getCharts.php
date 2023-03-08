@@ -1,95 +1,133 @@
 #!/usr/bin/php
 <?php
-// Ignore warnings
-error_reporting(E_ALL & ~E_WARNING);
+//####################################################################
+// getCharts.php
+// Downloads the latest version of the Google Charts library.
+// by Marcelo Dantas
+//
+require_once('include/defines.php');
+require_once('include/globals.php');
+require_once('include/functions.php');
 
-// Global defines
-define('NL', "\n");
+//####################################################################
+// App specific defines
+//
+define('NAME', 'GetCharts');
+define('HEADER', 'Downloads the latest version of the Google Charts API.');
+define('APP', $argv[0]);
+define(
+	'USAGE',
+	'[-h|-help] [-debug[=n]]' . NL .
+		TAB . '-h|-help    - Shows this help message.' . NL .
+		TAB . '-debug[=n]  - Defines the debug (verbosity) level.' . NL
+);
+
 define('URL', 'https://www.gstatic.com/');
 
-// Program Start
-print('Google Charts downloader v1.1' . NL);
-print('      by Marcelo Dantas' . NL);
-print('-----------------------------' . NL);
+//####################################################################
+// Start computing execution time
+//
+timeIn();
 
-// This needs to be run from the html_files folder
-if (basename(getcwd()) != 'html_files') {
-	print('ERROR: This script must be run from the html_files folder.' . NL);
-	exit(1);
-}
+//####################################################################
+// Parse all command line parameters and merge into the globals
+//
+$globals = object_merge($globals, parse_params());
+
+//####################################################################
+// Print program header
+//
+head();
 
 // Process charts/loader.js
-if (!file_exists('charts')) {
-	print('Creating charts folder.' . NL);
-	exec('mkdir charts');
-}
-
-print('Finding the current charts version...' . NL);
-$current = 0;
-if (file_exists('charts/loader.js')) {
-	$file = file_get_contents('charts/loader.js');
-	$pos = strpos($file, 'current:');
-	$current = +substr($file, $pos + 9, 3);
+if (file_exists('html_files/charts')) {
+	if($globals->debug)
+		print('Finding the current loader.js version...' . NL);
+	if (file_exists('html_files/charts/loader.js')) {
+		$file = file_get_contents('html_files/charts/loader.js');
+		$pos = strpos($file, 'current:');
+		$current = +substr($file, $pos + 9, 3);
+	}
 	print('Current version is ' . $current . '.' . NL);
+} else {
+	print('Current version is undefined.' . NL);
+	$current = 0;
 }
 
-print('Downloading charts/loader.js...' . NL);
+if($globals->debug)
+	print('Downloading online loader.js...' . NL);
 $file = file_get_contents(URL . 'charts/loader.js');
 
-print('Finding the latest charts version...' . NL);
+if($globals->debug)
+	print('Finding the latest charts version...' . NL);
 $pos = strpos($file, 'current:');
 $version = +substr($file, $pos + 9, 3);
 print('Latest version is ' . $version . '.' . NL);
 
-if ($version == $current)
-	die('Nothing to download.' . NL);
+if ($version == $current) {
+	print('Nothing to download.' . NL);
+	print('Finished in ');
+	timeOut();
+	die(NL . NL);
+}
 
 // Rename the current charts folder to charts.{version}
 if ($current > 0) {
-	print('Renaming charts folder to charts.' . $current . '...' . NL);
-	exec('mv charts charts.' . $current);
+	if($globals->debug)
+		print('Renaming charts folder to charts.' . $current . '...' . NL);
+	exec('mv html_files/charts html_files/charts.' . $current);
 }
 
-// Create the charts folder
-print('Creating charts folder...' . NL);
-exec('mkdir charts');
+// Create the charts folder if needed
+if(!file_exists('html_files/charts')) {
+	if($globals->debug)
+		print('Creating charts folder...' . NL);
+	exec('mkdir html_files/charts');
+}
 
-print('Patching charts/loader.js file...' . NL);
+if($globals->debug)
+	print('Patching charts/loader.js file...' . NL);
 $file = str_replace('"' . URL, 'relPath+"/html_files/', $file);
-print('Saving charts/loader.js...' . NL);
-file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, 'charts/loader.js'), $file);
+if($globals->debug)
+	print('Saving charts/loader.js...' . NL);
+file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, 'html_files/charts/loader.js'), $file);
 
 // Process charts/{version}/loader.js
-if (!file_exists('charts/' . $version)) {
-	print('Creating charts/' . $version . ' folder.' . NL);
-	exec(str_replace('/', DIRECTORY_SEPARATOR, 'mkdir charts/' . $version));
+if (!file_exists('html_charts/charts/' . $version)) {
+	if($globals->debug)
+		print('Creating charts/' . $version . ' folder.' . NL);
+	exec(str_replace('/', DIRECTORY_SEPARATOR, 'mkdir html_files/charts/' . $version));
 }
 
-print('Downloading charts/' . $version . '/loader.js...' . NL);
+if($globals->debug)
+	print('Downloading charts/' . $version . '/loader.js...' . NL);
 $file = file_get_contents(URL . 'charts/' . $version . '/loader.js');
 
-print('Patching charts/' . $version . '/loader.js file...' . NL);
+if($globals->debug)
+	print('Patching charts/' . $version . '/loader.js file...' . NL);
 $file = str_replace('"' . URL, 'relPath+"/html_files/', $file);
-print('Saving charts' . $version . '/loader.js...' . NL);
-file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, 'charts/' . $version . '/loader.js'), $file);
+if($globals->debug)
+	print('Saving charts' . $version . '/loader.js...' . NL);
+file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, 'html_files/charts/' . $version . '/loader.js'), $file);
 
 // Create remaining folders
 $folders = array();
-$folders[] = 'charts/' . $version . '/css';
-$folders[] = 'charts/' . $version . '/css/core';
-$folders[] = 'charts/' . $version . '/css/table';
-$folders[] = 'charts/' . $version . '/css/util';
-$folders[] = 'charts/' . $version . '/i18n';
-$folders[] = 'charts/' . $version . '/js';
-$folders[] = 'charts/' . $version . '/third_party';
-$folders[] = 'charts/' . $version . '/third_party/d3';
-$folders[] = 'charts/' . $version . '/third_party/d3/v5';
-$folders[] = 'charts/' . $version . '/third_party/d3_sankey';
-$folders[] = 'charts/' . $version . '/third_party/d3_sankey/v4';
-$folders[] = 'charts/' . $version . '/third_party/dygraphs';
+$folders[] = 'html_files/charts/' . $version . '/css';
+$folders[] = 'html_files/charts/' . $version . '/css/core';
+$folders[] = 'html_files/charts/' . $version . '/css/table';
+$folders[] = 'html_files/charts/' . $version . '/css/util';
+$folders[] = 'html_files/charts/' . $version . '/i18n';
+$folders[] = 'html_files/charts/' . $version . '/js';
+$folders[] = 'html_files/charts/' . $version . '/third_party';
+$folders[] = 'html_files/charts/' . $version . '/third_party/d3';
+$folders[] = 'html_files/charts/' . $version . '/third_party/d3/v5';
+$folders[] = 'html_files/charts/' . $version . '/third_party/d3_sankey';
+$folders[] = 'html_files/charts/' . $version . '/third_party/d3_sankey/v4';
+$folders[] = 'html_files/charts/' . $version . '/third_party/dygraphs';
 
 foreach ($folders as $key => $folder) {
-	print('Creating folder ' . $folder . '...' . NL);
+	if($globals->debug)
+		print('Creating folder ' . $folder . '...' . NL);
 	if (!file_exists($folder))
 		exec(str_replace('/', DIRECTORY_SEPARATOR, 'mkdir ' . $folder));
 }
@@ -195,11 +233,22 @@ $files[] = 'charts/' . $version . '/third_party/d3_sankey/v4/d3.sankey.js';
 $files[] = 'charts/' . $version . '/third_party/d3/v5/d3.js';
 $files[] = 'charts/' . $version . '/third_party/dygraphs/dygraph-tickers-combined.js';
 
+//####################################################################
+// Download files
+//
+if(!$globals->debug)
+	print('Downloading files...' . NL);
 foreach ($files as $key => $name) {
-	print('Downloading ' . $name . '...' . NL);
+	if($globals->debug)
+		print('Downloading ' . $name . '...' . NL);
 	$file = file_get_contents(URL . $name);
-	file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, $name), $file);
+	file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, 'html_files/' . $name), $file);
 }
 
-print('Download finished.' . NL);
+//####################################################################
+// End computing execution time
+//
+print('Finished in ');
+timeOut();
+print(NL . NL);
 ?>

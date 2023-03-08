@@ -10,12 +10,16 @@ require_once('include/globals.php');
 require_once('include/prereqs.php');
 require_once('include/functions.php');
 
+if(!file_exists('html_files/charts')) {
+    print('ERROR: html_files/charts folder not found.' . NL);
+    print('       Use tools/getCharts.php to create the charts folder.' . NL);
+    exit(1);
+}
+
 //####################################################################
 // App specific defines
 //
-define('NAME', 'report');
-define('VERSION', '6.0.0');
-define('AUTHOR', 'Marcelo Dantas');
+define('NAME', 'Report');
 define('HEADER', 'Generates a report from a report description file.');
 define('APP', $argv[0]);
 define(
@@ -25,6 +29,10 @@ define(
         TAB . '-debug[=n]  - Defines the debug (verbosity) level.' . NL .
         TAB . '-silent     - Supresses program header text. (for scripting)' . NL .
         TAB . '-report=<f> - Defines the report description file to be used.' . NL .
+        TAB . '-output=<f> - Defines the output file to be created.' . NL .
+        TAB . '               If not defined, the output file will have' . NL .
+        TAB . '               the same name as the report file, but with' . NL .
+        TAB . '               the .htm extension.' . NL .
         TAB . '...         - Any other parameters will be available in the $globals array.' . NL
 );
 
@@ -32,11 +40,6 @@ define(
 // Start computing execution time
 //
 timeIn();
-
-//####################################################################
-// Print program header
-//
-head();
 
 //####################################################################
 // Program variables
@@ -62,7 +65,12 @@ if (isset($globals->globals)) {
 //####################################################################
 // Parse all command line parameters and merge into the globals
 //
-$globals = (object) array_merge((array) $globals, (array) parse_params());
+$globals = object_merge($globals, parse_params());
+
+//####################################################################
+// Print program header
+//
+head();
 
 //####################################################################
 // Check for mandatory parameters
