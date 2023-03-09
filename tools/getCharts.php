@@ -9,9 +9,7 @@ require_once('include/defines.php');
 require_once('include/globals.php');
 require_once('include/functions.php');
 
-//####################################################################
 // App specific defines
-//
 define('NAME', 'GetCharts');
 define('HEADER', 'Downloads the latest version of the Google Charts API.');
 define('APP', $argv[0]);
@@ -24,20 +22,18 @@ define(
 
 define('URL', 'https://www.gstatic.com/');
 
-//####################################################################
 // Start computing execution time
-//
 timeIn();
 
-//####################################################################
 // Parse all command line parameters and merge into the globals
-//
 $globals = object_merge($globals, parse_params());
+if($globals->debug)
+    describe($globals, 'globals');
 
-//####################################################################
 // Print program header
-//
 head();
+
+// Main Program
 
 // Process charts/loader.js
 if (file_exists('html_files/charts')) {
@@ -233,9 +229,7 @@ $files[] = 'charts/' . $version . '/third_party/d3_sankey/v4/d3.sankey.js';
 $files[] = 'charts/' . $version . '/third_party/d3/v5/d3.js';
 $files[] = 'charts/' . $version . '/third_party/dygraphs/dygraph-tickers-combined.js';
 
-//####################################################################
 // Download files
-//
 if(!$globals->debug)
 	print('Downloading files...' . NL);
 foreach ($files as $key => $name) {
@@ -245,9 +239,7 @@ foreach ($files as $key => $name) {
 	file_put_contents(str_replace('/', DIRECTORY_SEPARATOR, 'html_files/' . $name), $file);
 }
 
-//####################################################################
 // End computing execution time
-//
 print('Finished in ');
 timeOut();
 print(NL . NL);

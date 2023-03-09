@@ -1,7 +1,6 @@
 <?php
 // This file includes a library of functions from the 'library' folder.
 // All the functions present on the library folder will be available to the program.
-
 if($globals->debug)
 	print('Loading functions.' . NL);
 $functions = scandir($globals->cwd.'/include/library');

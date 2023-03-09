@@ -16,9 +16,7 @@ if(!file_exists('html_files/charts')) {
     exit(1);
 }
 
-//####################################################################
 // App specific defines
-//
 define('NAME', 'Report');
 define('HEADER', 'Generates a report from a report description file.');
 define('APP', $argv[0]);
@@ -36,16 +34,10 @@ define(
         TAB . '...         - Any other parameters will be available in the $globals array.' . NL
 );
 
-//####################################################################
 // Start computing execution time
-//
 timeIn();
 
-//####################################################################
 // Program variables
-//
-
-// Array of object types
 $globals->object_types = array(
     'chart' => 'Chart',
     'dummy' => 'Dummy',
@@ -55,73 +47,52 @@ $globals->object_types = array(
     'variable' => 'Variable'
 );
 
-//####################################################################
 // If a globals file was specified, load it and merge into the globals
-//
 if (isset($globals->globals)) {
     $globals = (object) array_merge((array) $globals, (array) get_json_data($globals->globals));
 }
 
-//####################################################################
 // Parse all command line parameters and merge into the globals
-//
 $globals = object_merge($globals, parse_params());
 
-//####################################################################
 // Print program header
-//
 head();
 
-//####################################################################
 // Check for mandatory parameters
-//
 if (!isset($globals->report)) {
     print('ERROR: Report file parameter not found.' . NL . '-report="<report[.json|.yaml]>" must be specified.' . NL . NL . usage());
     exit(1);
 }
 
-//####################################################################
 // Generate the output file name if not specified
-//
 if (!isset($globals->output)) {
     $globals->output = basename($globals->report, '.json') . '.htm';
 }
 
-//####################################################################
 // Check if the report file exists
-//
 if (!rdf_exists($globals->report)) {
     print('ERROR: Report file ' . $globals->report . ' does not exist.' . NL . NL);
     exit(1);
 }
 
-//####################################################################
 // Remove the temporary file when the program exits
-//
 $globals->pid = getmypid();
 $globals->tmp_file = $globals->tmp . '/report_' . $globals->pid . '.json';
 register_shutdown_function('remove_tmp', $globals->tmp_file);
 
-//####################################################################
 // Save all the current globals onto a temporary file named after the
 // current process id.
-//
 file_put_contents($globals->tmp_file, json_encode($globals, JSON_PRETTY_PRINT));
 
-//####################################################################
 // Check report file syntax
-//
 $report = rdf_data($globals->report);
 
-//####################################################################
 // Calculate relative path between the program and the output file 
 $globals->relPath = relative_path(dirname($globals->path . '/' . $globals->output), $globals->path, '/');
 if ($globals->relPath == '')
 	$globals->relPath = './';
 
-//####################################################################
 // Start analyzing the report file
-//
 $pages = 0;
 $objects = 0;
 // Get the page defaults, if any
@@ -326,9 +297,7 @@ foreach ($report->pages as $pageID => $page) {
 }
 print(NL . 'Report file ' . $globals->report . ' will generate ' . $pages . ' pages totaling ' . $objects . ' objects.' . NL);
 
-//####################################################################
 // End computing execution time
-//
 print('Finished in ');
 timeOut();
 print(NL . NL);
